@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function Home() {
   /* ------------------ 状態 ------------------ */
@@ -9,6 +9,20 @@ export default function Home() {
   const [running, setRunning] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  /* ------------------ ハンドラ ------------------ */
+  function onSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const v = +e.target.value;
+    setIntervalMin(v);
+    if (!running) setSecondsLeft(v * 60);
+  }
+
+  function toggleRun() {
+    setRunning((prev) => {
+      if (!prev) setSecondsLeft(intervalMin * 60);
+      return !prev;
+    });
+  }
+
   /* ------------------ タイマー ------------------ */
   useEffect(() => {
     if (!running) return;
@@ -16,7 +30,12 @@ export default function Home() {
       setSecondsLeft((prev) => {
         if (prev === 0) return 0;
         const next = prev - 1;
-        if (next % (intervalMin * 60) === 0) audioRef.current?.play();
+
+        // インターバルごと、または終了時にベルを鳴らす
+        if (next === 0 || next % (intervalMin * 60) === 0) audioRef.current?.play();
+
+        // 0 になったら自動停止
+        if (next === 0) setRunning(false);
         return next;
       });
     }, 1000);
@@ -36,7 +55,7 @@ export default function Home() {
       <select
         className="border rounded px-3 py-1"
         value={intervalMin}
-        onChange={(e) => setIntervalMin(+e.target.value)}
+        onChange={onSelectChange}
         disabled={running}
       >
         <option value={3}>ベル間隔: 3分</option>
@@ -46,7 +65,7 @@ export default function Home() {
 
       {/* スタート／ポーズ ボタン */}
       <button
-        onClick={() => setRunning((p) => !p)}
+        onClick={toggleRun}
         className="w-40 h-40 rounded-full font-bold text-lg shadow
                    bg-gradient-to-br from-yellow-200 to-yellow-400"
       >
@@ -57,8 +76,7 @@ export default function Home() {
       <div className="text-4xl font-semibold tracking-widest">{mmss(secondsLeft)}</div>
 
       {/* ベル音 */}
-      <audio ref={audioRef} src="/sounds/bell.mp3" preload="auto" />
+      <audio ref={audioRef} src="/bell.wav" preload="auto" />
     </main>
   );
 }
-
