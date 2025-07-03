@@ -9,7 +9,9 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  // Static export for GitHub Pages
+  output: "export",
+  trailingSlash: true,
 };
 
 export default withPWA(nextConfig);
